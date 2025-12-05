@@ -123,7 +123,14 @@ require('hover').config({
 Module: `hover.providers.lsp`
 Priority: 1000
 
-Builtin LSP. Suppors multiple clients.
+Builtin LSP. Supports multiple clients.
+
+### Inlay Hint
+
+Module: `hover.providers.inlay_hint`
+Priority: 1000
+
+Using the built-in LSP, hover over the locations provided by an inlay hint. Supports multiple clients.
 
 ### Diagnostics
 
