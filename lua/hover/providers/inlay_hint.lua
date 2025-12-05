@@ -1,13 +1,30 @@
 local api = vim.api
 local lsp = vim.lsp
 
-if lsp.inlay_hint.apply_action == nil then
+local apply_action = lsp.inlay_hint.apply_action
+if apply_action == nil then
   -- we want to use `vim.lsp.inlay_hint.apply_action` to avoid re-implementing `inlayHint/resolve`
-  return
+  return error('This provider requires nvim 0.12 (or nightly)')
 end
 
 --- @type table<integer, Hover.Provider?> -- client_id -> provider_id
 local lsp_providers = {}
+
+---@param labels lsp.InlayHintLabelPart[]
+---@param new lsp.InlayHintLabelPart
+local function add_new_label(labels, new)
+  if
+    vim.iter(labels):any(
+      ---@param label lsp.InlayHintLabelPart
+      function(label)
+        return vim.deep_equal(label.location, new.location)
+      end
+    )
+  then
+    return
+  end
+  table.insert(labels, new)
+end
 
 --- @class InlayHintProvider
 --- @field client_id integer
@@ -33,7 +50,7 @@ function InlayHintProvider:execute(params, done)
   local row0 = params.pos[1] - 1
   local col0 = params.pos[2]
 
-  lsp.inlay_hint.apply_action(function(hints, ctx, on_finish)
+  apply_action(function(hints, ctx, on_finish)
     if #hints == 0 then
       return 0
     end
@@ -60,15 +77,15 @@ function InlayHintProvider:execute(params, done)
       return 0
     end
     ---@type lsp.InlayHintLabelPart[]
-    local labels = vim
-      .iter(hint.label)
-      :filter(
-        ---@param label lsp.InlayHintLabelPart
-        function(label)
-          return label.location ~= nil
+    local labels = {}
+    vim.iter(hint.label):each(
+      ---@param label lsp.InlayHintLabelPart
+      function(label)
+        if label.location then
+          add_new_label(labels, label)
         end
-      )
-      :totable()
+      end
+    )
     if #labels == 0 then
       return 0
     end
