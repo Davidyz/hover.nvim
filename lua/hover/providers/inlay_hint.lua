@@ -1,7 +1,7 @@
 local api = vim.api
 local lsp = vim.lsp
 
-local apply_action = lsp.inlay_hint.apply_action
+local apply_action = lsp.inlay_hint.apply_action or lsp.inlay_hint.action
 if apply_action == nil then
   -- we want to use `vim.lsp.inlay_hint.apply_action` to avoid re-implementing `inlayHint/resolve`
   return error('This provider requires nvim 0.12 (or nightly)')
