@@ -138,11 +138,17 @@ function InlayHintProvider:execute(params, done)
 
     return 1
   end, {
-    range = vim.range(
-      vim.pos(row0, col0, { buf = bufnr }),
-      vim.pos(row0, col0 + 2, { buf = bufnr })
-    ),
-    clients = { lsp.get_client_by_id(self.client_id) },
+    hints = vim
+      .iter(lsp.inlay_hint.get({
+        range = {
+          start = { line = row0, character = col0 },
+          ['end'] = { line = row0, character = col0 + 1 },
+        },
+      }))
+      :filter(function(item)
+        return item.client_id == self.client_id
+      end)
+      :totable(),
   }, function(ctx)
     assert(ctx.bufnr)
     if ctx.bufnr == bufnr then
